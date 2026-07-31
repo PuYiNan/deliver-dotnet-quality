@@ -1,0 +1,4 @@
+interface:
+  display_name: ".NET Closed-Loop Delivery"
+  short_description: "Requirements, tests, gates, and evidence for .NET delivery"
+  default_prompt: "Use $deliver-dotnet-quality to deliver this .NET task through approved requirements, executable quality gates, and evidence-based acceptance."
