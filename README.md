@@ -1,6 +1,6 @@
 # AI Agent 高质量闭环工程套件（C#/.NET）
 
-当前版本：`1.0.1`
+当前版本：`1.1.0`
 
 这个套件把“先理解、再实现、用证据交付”变成与 Agent 厂商无关的仓库协议、CLI、状态机和 CI 门禁。Claude Code、Pi、Codex 只是协议的适配器；即使更换 Agent，任务状态、审批哈希、测试命令和证据格式都不变。
 
@@ -22,7 +22,7 @@ Codex ───────┘                              │
 
 ## 套件包含什么
 
-- `aq.ps1`：所有 Agent 和人类使用的统一入口，支持 `new/status/approve/verify/check-delivery`。
+- `aq.ps1`：所有 Agent 和人类使用的统一入口，支持 `new/status/trust/approve/verify/check-delivery`。
 - `.ai-quality`：Agent 无关的工作项、状态机、审批、门禁和证据协议。
 - `skills/deliver-dotnet-quality`：遵循 Agent Skills 目录结构的可移植技能包；Codex、Claude Code 和 Pi 可按各自目录加载。
 - `AGENTS.md`、`CLAUDE.md`：启动时上下文适配。
@@ -67,17 +67,42 @@ pwsh ./aq.ps1 new -Title '管理员创建用户并处理重复邮箱'
 
 有 UI 变更时增加 `-UiScope`。这会进入 `discovery` 状态，此时 Agent 只能检查代码并填写 `spec.md`，不能改产品代码。
 
-## 3. 人工批准需求
+## 3. 选择审批模式
 
-审查 `.ai-quality/work-items/<id>/spec.md`，确认没有 TODO、歧义和不可验证标准，然后由人类在自己的终端执行：
+默认是 `manual`，完全保留原有人工审批。需要让 Agent 自主推进时，由用户在仓库中做一次显式授权：
+
+```powershell
+pwsh ./aq.ps1 trust -Enable -AuthorizedBy '你的名字'
+```
+
+输入一次 `ENABLE TRUSTED MODE` 后，仓库进入 `trusted`。Agent 随后可以自行执行各阶段 `approve`，不再每一步等待人工输入；状态机、文档完整性检查、审批哈希、Full 门禁、UI Hook 和交付校验仍然强制执行。
+
+随时查看或关闭：
+
+```powershell
+pwsh ./aq.ps1 trust
+pwsh ./aq.ps1 trust -Disable
+```
+
+`trusted` 的审批记录会写入 `approvalAuthority: implementing-agent` 以及本次信任授权人和时间，绝不会伪装成人工评审。它适合个人项目和高频迭代；受保护分支仍建议保留独立 CI 与 PR 审核。
+
+## 4. 批准需求
+
+在 `manual` 中，审查 `.ai-quality/work-items/<id>/spec.md` 后由人类执行：
 
 ```powershell
 pwsh ./aq.ps1 approve -Stage Requirements -WorkItemId '<id>' -ApprovedBy '你的名字'
 ```
 
-脚本会要求手工输入完整确认短语，并记录规格文件 SHA-256。批准后再改规格会导致质量门禁失败。
+在 `trusted` 中，Agent 完成规格并把状态改为 `READY`、勾选就绪清单后，直接执行下面的命令（不需要 `-ApprovedBy`，也不会弹人工确认）：
 
-## 4. 批准计划和测试契约
+```powershell
+pwsh ./aq.ps1 approve -Stage Requirements -WorkItemId '<id>'
+```
+
+两种模式都会记录规格文件 SHA-256。批准后再改规格会导致质量门禁失败。
+
+## 5. 批准计划和测试契约
 
 让 Agent 填写 `plan.md` 和 `test-matrix.md`。审查后依次执行：
 
@@ -88,7 +113,9 @@ pwsh ./aq.ps1 approve -Stage Tests -WorkItemId '<id>' -ApprovedBy '你的名字'
 
 Tests 批准后状态才会进入 `implementation-authorized`，Agent 此时才能修改代码。
 
-## 5. 配置项目专属验证
+`trusted` 中省略 `-ApprovedBy` 即可自动审批；计划必须含 AC 映射，测试契约必须含 `T-### -> AC-###` 映射，否则自动审批会失败。
+
+## 6. 配置项目专属验证
 
 基础 .NET 验证无需配置。仓库有多个解决方案时，在 `.ai-quality/config.json` 填写 `solution`。
 
@@ -98,7 +125,7 @@ Tests 批准后状态才会进入 `implementation-authorized`，Agent 此时才�
 
 如果任务标记为 UI 范围但没有可执行 UI Hook，Full 门禁会失败，不允许用“我检查过代码”代替 UI 测试。
 
-## 6. 运行交付门禁
+## 7. 运行交付门禁
 
 ```powershell
 pwsh ./aq.ps1 verify -WorkItemId '<id>' -Mode Full
@@ -112,13 +139,15 @@ Agent 填完 `delivery.md` 后执行：
 pwsh ./aq.ps1 check-delivery -WorkItemId '<id>'
 ```
 
-只有全部 AC 都有 PASS 证据、Full 门禁通过、交付报告没有 TODO/FAIL/UNVERIFIED 时验证才通过。最终由人类批准：
+只有全部 AC 都有 PASS 证据、Full 门禁通过、交付报告没有 TODO/FAIL/UNVERIFIED 时验证才通过。`manual` 最终由人类批准：
 
 ```powershell
 pwsh ./aq.ps1 approve -Stage Delivery -WorkItemId '<id>' -ApprovedBy '你的名字'
 ```
 
-## 7. 建立真正不可绕过的硬门禁
+`trusted` 可由 Agent 省略 `-ApprovedBy` 执行同一命令，但交付结论必须说明未进行独立人工评审。
+
+## 8. 建立真正不可绕过的硬门禁
 
 AGENTS、Skills 和本地 Hook 解决的是“让 Agent 知道并尽量正确执行”；如果 Agent 拥有与你完全相同的文件和 Git 权限，它理论上仍可绕过或修改这些规则。真正不可绕过的边界必须放在 Agent 进程权限之外：
 

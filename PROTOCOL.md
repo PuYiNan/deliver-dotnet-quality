@@ -18,7 +18,8 @@ An implementation MUST provide:
 ```text
 pwsh ./aq.ps1 new -Title <text> [-Id <id>] [-UiScope]
 pwsh ./aq.ps1 status [-WorkItemId <id>] [-Json]
-pwsh ./aq.ps1 approve -Stage <Requirements|Plan|Tests|Delivery> -WorkItemId <id> -ApprovedBy <human>
+pwsh ./aq.ps1 trust [-Enable -AuthorizedBy <human> | -Disable]
+pwsh ./aq.ps1 approve -Stage <Requirements|Plan|Tests|Delivery> -WorkItemId <id> [-ApprovedBy <human>]
 pwsh ./aq.ps1 verify -WorkItemId <id> -Mode <Quick|Full> [-Target <solution>]
 pwsh ./aq.ps1 check-delivery -WorkItemId <id>
 ```
@@ -42,7 +43,9 @@ Product edits are allowed only in `implementation-authorized` and `verification-
 
 ## Approval contract
 
-Requirements, Plan, Tests, and Delivery approvals MUST originate outside the implementing agent's authority. Approval records bind the approved artifact SHA-256. Verification MUST fail if an approved artifact changes.
+Repositories MUST default to `approvalMode: manual`. Manual Requirements, Plan, Tests, and Delivery approvals MUST originate outside the implementing agent's authority. A user MAY explicitly enable `approvalMode: trusted` once for a repository; the implementing Agent may then create approvals only after deterministic readiness validation succeeds.
+
+All approval records bind the approved artifact SHA-256. Verification MUST fail if an approved artifact changes. Trusted records MUST identify `approvalMode: trusted`, `approvalAuthority: implementing-agent`, and the user/time that enabled the mode; they MUST NOT impersonate an external reviewer.
 
 For protected repositories, approval authority SHOULD be a human PR reviewer or a service identity unavailable to the agent process. A local interactive approval is an ergonomic checkpoint, not a cryptographic security boundary.
 
@@ -67,7 +70,7 @@ An adapter for Codex, Claude Code, Pi, or another harness SHOULD:
 1. load the central policy at session start and after context compaction;
 2. run `aq.ps1 status` before editing;
 3. intercept direct file writes and call `Assert-AiEditAllowed.ps1` where the harness supports hooks;
-4. prevent the implementing identity from creating approvals;
+4. prevent the implementing identity from creating approvals in manual mode; in trusted mode, allow only the common CLI to create auditable automatic approvals;
 5. invoke only the common CLI for transitions and verification;
 6. display CLI evidence and non-zero exits without rewriting their meaning.
 

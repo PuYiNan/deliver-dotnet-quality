@@ -1,5 +1,9 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "approvalMode": "manual",
+  "trustedApprover": "agent:trusted-mode",
+  "trustAuthorizedBy": "",
+  "trustAuthorizedAt": "",
   "solution": "",
   "requireFormatCheck": true,
   "requireUiHookWhenUiInScope": true,
