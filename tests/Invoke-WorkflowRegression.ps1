@@ -158,3 +158,5 @@ finally {
         Remove-Item -LiteralPath $resolvedTemp -Recurse -Force
     }
 }
+
+exit 0

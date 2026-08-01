@@ -262,3 +262,5 @@ finally {
         Remove-Item -LiteralPath $resolved -Recurse -Force
     }
 }
+
+exit 0
