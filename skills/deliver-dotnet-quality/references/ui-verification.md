@@ -2,7 +2,7 @@
 
 ## Web UI
 
-Use Playwright .NET for critical user journeys. Configure stable `data-testid` selectors, deterministic seed data, fixed time where practical, disabled animations, and captured trace/screenshots on failure.
+Use the repository's Playwright binding or equivalent browser runner for critical user journeys. Configure stable `data-testid` selectors, deterministic seed data, fixed time where practical, disabled animations, and captured trace/screenshots on failure.
 
 Separate:
 

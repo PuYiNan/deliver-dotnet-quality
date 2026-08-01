@@ -11,7 +11,7 @@ The active work item, approved acceptance criteria, repository code, and executa
 3. Planning: complete `plan.md` and `test-matrix.md`.
 4. Plan and Tests approvals: manual mode uses a human; trusted mode lets the Agent self-approve completed artifacts.
 5. Implementation: make small mapped changes and run narrow checks.
-6. Verification: run the Full quality gate, including configured UI hooks.
+6. Verification: run every required language/toolchain adapter in the Full quality gate, including configured UI hooks.
 7. Delivery: complete and validate `delivery.md`; manual mode requests human/PR acceptance, while trusted mode may self-accept and must disclose the missing independent review.
 
 ## Modification rules
@@ -32,10 +32,10 @@ Requirements are ready only when the objective, current and desired behavior, no
 Completion requires all of the following:
 
 - every acceptance criterion is mapped to evidence;
-- Release build passes with warnings treated as errors;
-- all configured tests and Full hooks pass;
+- every affected build/package root has a required adapter;
+- all required adapters, builds, static checks, tests, packaging checks, and Full hooks pass;
 - the application or affected UI journey is actually executed when UI is in scope;
-- the Full gate evidence exists and is current for the approved specification;
+- the Full gate evidence exists and is current for the approved specification, gate configuration, and adapter implementations;
 - `delivery.md` contains no placeholder or unsupported claim;
 - residual risks, skipped checks, and manual checks are explicit;
 - the Delivery approval is recorded under the active approval mode; protected repositories still require their independent PR/CI policy.

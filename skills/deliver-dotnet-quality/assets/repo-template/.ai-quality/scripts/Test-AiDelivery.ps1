@@ -28,6 +28,23 @@ if ($stateContent) {
 if ($gateContent) {
     $gate = $gateContent | ConvertFrom-Json
     if ($gate.mode -ne 'Full' -or $gate.overall -ne 'Passed') { $errors.Add('Latest quality gate is not a passing Full run.') }
+    if ([int]$gate.schemaVersion -ge 2) {
+        $configPath = Join-Path $repoRoot '.ai-quality\config.json'
+        $currentConfigHash = (& (Join-Path $PSScriptRoot 'Get-AiGateConfigFingerprint.ps1') -ConfigPath $configPath).Trim()
+        if ($gate.gateConfigSha256 -ne $currentConfigHash) { $errors.Add('Gate configuration changed after the latest Full run.') }
+        $requiredAdapters = @($gate.adapters | Where-Object required)
+        if ($requiredAdapters.Count -eq 0) { $errors.Add('Full gate evidence contains no required adapter.') }
+        foreach ($adapter in $requiredAdapters) {
+            if ($adapter.status -ne 'Passed') { $errors.Add("Required adapter '$($adapter.id)' did not pass.") }
+            $adapterScript = Join-Path $repoRoot ".ai-quality\adapters\$($adapter.type).ps1"
+            if (-not (Test-Path -LiteralPath $adapterScript)) {
+                $errors.Add("Required adapter implementation is missing: $($adapter.type).")
+            }
+            elseif ($adapter.scriptSha256 -ne (Get-FileHash -Algorithm SHA256 -LiteralPath $adapterScript).Hash.ToLowerInvariant()) {
+                $errors.Add("Required adapter '$($adapter.id)' changed after the latest Full run.")
+            }
+        }
+    }
 }
 foreach ($pair in @(@('specification', $spec), @('test matrix', $matrix), @('delivery report', $delivery))) {
     if ($pair[1] -and $pair[1] -match '\[TODO') { $errors.Add("$($pair[0]) contains TODO placeholders.") }

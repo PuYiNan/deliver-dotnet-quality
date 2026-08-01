@@ -1,6 +1,6 @@
-# AI Agent 高质量闭环工程套件（C#/.NET）
+# AI Agent 高质量闭环工程套件（语言无关内核）
 
-当前版本：`1.1.0`
+当前版本：`2.0.0`
 
 这个套件把“先理解、再实现、用证据交付”变成与 Agent 厂商无关的仓库协议、CLI、状态机和 CI 门禁。Claude Code、Pi、Codex 只是协议的适配器；即使更换 Agent，任务状态、审批哈希、测试命令和证据格式都不变。
 
@@ -11,7 +11,7 @@ Claude Code ─┐
 Pi Agent ────┼─> AGENTS/Skill/Hook 适配层 ─> aq.ps1 通用 CLI
 Codex ───────┘                              │
                                              ├─ 状态机与审批哈希
-                                             ├─ .NET/UI 质量门禁
+                                             ├─ 多语言 Gate Adapter + UI 门禁
                                              ├─ 证据与交付校验
                                              └─ CI + 人工合并审批（最终信任边界）
 ```
@@ -24,18 +24,19 @@ Codex ───────┘                              │
 
 - `aq.ps1`：所有 Agent 和人类使用的统一入口，支持 `new/status/trust/approve/verify/check-delivery`。
 - `.ai-quality`：Agent 无关的工作项、状态机、审批、门禁和证据协议。
-- `skills/deliver-dotnet-quality`：遵循 Agent Skills 目录结构的可移植技能包；Codex、Claude Code 和 Pi 可按各自目录加载。
+- `skills/deliver-dotnet-quality`：为兼容现有安装保留名称的可移植技能包；能力已覆盖 .NET、Node、Python、自定义工具链和多语言仓库。
 - `AGENTS.md`、`CLAUDE.md`：启动时上下文适配。
 - `.agents/skills`：Pi 和兼容 Agent Skills 的项目级技能适配。
 - `.claude/skills` 与可选 PreToolUse Hook：Claude Code 适配。
 - `.pi/extensions/ai-quality-guard.ts`：Pi 的写入前状态门禁。
 - `.ai-quality/work-items/<id>`：每个需求的规格、计划、测试契约、审批、证据和交付报告。
 - PowerShell 状态机：创建任务、人工审批、执行质量门禁、验证交付声明。
-- .NET 门禁：Restore、格式检查、Release 构建、警告视为错误、全部测试。
-- UI Hook：Web 可接 Playwright .NET；WPF/WinForms/WinUI 可接 Appium 或 FlaUI。
+- Gate Adapter：内置 .NET、Node.js、Python 和通用命令适配器，可在同一 Monorepo 组合执行。
+- 统一证据：不同语言都输出适配器、目标、命令、工作目录、退出码、日志与状态。
+- UI Hook：可接 Playwright、Appium、FlaUI 或项目自己的端到端脚本。
 - GitHub Actions 和 Azure Pipelines 示例。
 
-## 1. 安装到一个 .NET 仓库
+## 1. 安装到源码仓库
 
 从本套件目录执行：
 
@@ -43,7 +44,17 @@ Codex ───────┘                              │
 ./skills/deliver-dotnet-quality/scripts/bootstrap-repository.ps1 -RepositoryPath 'D:\src\YourProduct'
 ```
 
-脚本默认拒绝覆盖已有文件。已有规则需要合并时先审查，不要直接使用 `-Force`。
+脚本会检测 `.sln/.csproj`、`package.json`、`pyproject.toml/requirements.txt`，并为每个发现的技术栈生成适配器。也可显式指定：
+
+```powershell
+./skills/deliver-dotnet-quality/scripts/bootstrap-repository.ps1 `
+  -RepositoryPath 'D:\src\YourProduct' `
+  -Adapters dotnet,node,python
+```
+
+Java、Go、Rust 或其他未内置识别的仓库可先使用 `-Adapters command`，然后在受评审的配置中填写实际步骤；空的 command adapter 不会通过 Full Gate。
+
+脚本默认拒绝覆盖已有文件。已有规则需要合并时使用升级脚本，不要直接对正式仓库使用 `-Force`。
 
 安装完成后，各 Agent 的使用方式如下：
 
@@ -115,12 +126,44 @@ Tests 批准后状态才会进入 `implementation-authorized`，Agent 此时才�
 
 `trusted` 中省略 `-ApprovedBy` 即可自动审批；计划必须含 AC 映射，测试契约必须含 `T-### -> AC-###` 映射，否则自动审批会失败。
 
-## 6. 配置项目专属验证
+## 6. 配置语言与项目验证
 
-基础 .NET 验证无需配置。仓库有多个解决方案时，在 `.ai-quality/config.json` 填写 `solution`。
+`.ai-quality/config.json` 的 `gate.adapters` 是语言无关边界。每个受影响的解决方案、包或服务都应有一个 `required: true` 的适配器：
 
-- 集成、安全、打包等项目检查：把 `hooks/full.ps1.example` 改名为 `full.ps1` 并填入实际命令。
-- Web UI：复制 `examples/ui-playwright.ps1` 为 `hooks/ui.ps1`，填写 E2E 测试项目路径。
+```json
+{
+  "gate": {
+    "adapters": [
+      {
+        "id": "api",
+        "type": "dotnet",
+        "workingDirectory": "services/api",
+        "target": "Api.slnx",
+        "required": true,
+        "settings": { "requireFormatCheck": true }
+      },
+      {
+        "id": "web",
+        "type": "node",
+        "workingDirectory": "apps/web",
+        "target": "",
+        "required": true,
+        "settings": { "packageManager": "pnpm", "requiredScripts": ["lint", "test", "build"] }
+      }
+    ]
+  }
+}
+```
+
+- `dotnet`：Restore、可选格式检查、Release Build（警告视为错误）和测试/TRX。
+- `node`：使用 npm 或 pnpm 锁文件确定性安装，并执行配置的 lint/typecheck/build/test scripts；没有锁文件时默认失败而不是改写依赖。
+- `python`：可选依赖安装、compileall、unittest/pytest，以及可选 Ruff/mypy。
+- `command`：用“可执行文件 + 参数数组”接入 Java、Go、Rust、打包、安全扫描等任意工具链。
+
+适配器、配置和质量脚本属于工作流控制文件，不能为了让实现通过而临时删减检查。
+
+- 集成、安全、打包等跨栈检查：把 `hooks/full.ps1.example` 改名为 `full.ps1` 并填入实际命令。
+- Web UI：.NET 可改造 `examples/ui-playwright.ps1`，Node 可改造 `examples/ui-playwright-node.ps1`，复制为 `hooks/ui.ps1` 后填写真实 E2E 路径。
 - Windows UI：复制 `examples/ui-windows.ps1` 为 `hooks/ui.ps1`，填写 Appium/FlaUI 测试项目路径。
 
 如果任务标记为 UI 范围但没有可执行 UI Hook，Full 门禁会失败，不允许用“我检查过代码”代替 UI 测试。
@@ -131,7 +174,7 @@ Tests 批准后状态才会进入 `implementation-authorized`，Agent 此时才�
 pwsh ./aq.ps1 verify -WorkItemId '<id>' -Mode Full
 ```
 
-门禁会验证三次审批后的文件哈希，并保存每一步的命令、退出码、日志、测试结果与 UI 证据。失败时状态变成 `verification-failed`；修复后必须重新运行完整门禁。
+门禁会验证三次审批后的文件哈希，并保存每个适配器及步骤的类型、目标、命令、工作目录、退出码、日志、测试结果与 UI 证据。任一必需适配器失败时状态变成 `verification-failed`；修复后必须重新运行完整门禁。
 
 Agent 填完 `delivery.md` 后执行：
 
@@ -158,6 +201,17 @@ AGENTS、Skills 和本地 Hook 解决的是“让 Agent 知道并尽量正确执
 5. CI 从干净环境重新执行 Full 门禁并上传 evidence artifact。
 
 `.github/CODEOWNERS.ai-quality.example` 提供了保护路径示例。Azure DevOps 用户可使用根目录的 `azure-pipelines-ai-quality.yml.example` 并配置对应的分支策略。
+
+## 9. 升级 v1.x .NET 仓库
+
+v1.x 的 `solution` 与 `requireFormatCheck` 配置仍受支持，运行时会标记为 `legacy-dotnet`。升级脚本只替换公共 CLI、核心脚本和适配器，保留配置、工作项、证据、模板和 Hook，并生成可回滚备份：
+
+```powershell
+./skills/deliver-dotnet-quality/scripts/upgrade-repository.ps1 `
+  -RepositoryPath 'D:\src\ExistingProduct'
+```
+
+需要同步项目级 Agent 指令时，审查后增加 `-IncludeAgentInstructions`。脚本会输出备份 ID；使用同一脚本的 `-Rollback '<backup-id>'` 可恢复被替换文件。确认兼容模式 Full Gate 通过后，再单独评审是否迁移为显式 `gate.adapters`。
 
 ## 状态流
 

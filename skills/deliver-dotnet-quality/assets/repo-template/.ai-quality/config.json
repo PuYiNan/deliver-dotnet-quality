@@ -1,11 +1,12 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "approvalMode": "manual",
   "trustedApprover": "agent:trusted-mode",
   "trustAuthorizedBy": "",
   "trustAuthorizedAt": "",
-  "solution": "",
-  "requireFormatCheck": true,
+  "gate": {
+    "adapters": []
+  },
   "requireUiHookWhenUiInScope": true,
   "fullHook": ".ai-quality/hooks/full.ps1",
   "uiHook": ".ai-quality/hooks/ui.ps1"
