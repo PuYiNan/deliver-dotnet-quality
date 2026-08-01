@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update Release PR
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Check out released commit
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.release.outputs.sha }}
+
+      - name: Set up Node.js
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Use npm 11 trusted-publishing client
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm install --global npm@11
+
+      - name: Set up Python
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Set up .NET
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install package metadata
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm ci
+
+      - name: Validate release version
+        if: ${{ steps.release.outputs.release_created }}
+        run: node tests/assert-release-version.mjs "${{ steps.release.outputs.version }}" "${{ steps.release.outputs.tag_name }}"
+
+      - name: Require public source repository
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: test "$(gh repo view "$GITHUB_REPOSITORY" --json visibility --jq .visibility)" = "PUBLIC"
+
+      - name: Re-run package validation
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm run ci
+
+      - name: Re-run workflow regressions
+        if: ${{ steps.release.outputs.release_created }}
+        shell: pwsh
+        run: |
+          ./tests/Invoke-WorkflowRegression.ps1
+          ./tests/Invoke-UpgradeRegression.ps1
+          ./tests/Invoke-AdapterRegression.ps1
+
+      - name: Build release tarball
+        if: ${{ steps.release.outputs.release_created }}
+        id: package
+        shell: bash
+        run: echo "archive=$(npm pack --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to npm
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Attach package to GitHub Release
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ steps.release.outputs.tag_name }}" "${{ steps.package.outputs.archive }}"

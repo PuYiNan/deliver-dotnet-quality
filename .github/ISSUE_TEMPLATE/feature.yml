@@ -1,0 +1,52 @@
+name: Feature request
+description: Propose a scoped, testable improvement
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: Describe observable outcomes before implementation starts.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and current behavior
+      description: What is difficult today, and who is affected?
+    validations:
+      required: true
+  - type: textarea
+    id: desired
+    attributes:
+      label: Desired behavior
+      description: Describe the user journey and expected result.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Use observable, independently testable checklist items.
+      placeholder: |
+        - [ ] AC-001: ...
+        - [ ] AC-002: ...
+    validations:
+      required: true
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      description: What must remain outside this change?
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks and compatibility
+      description: Include security, migration, platform, and release concerns.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+      description: Which automated, UI, failure-path, and migration checks are required?
+    validations:
+      required: true

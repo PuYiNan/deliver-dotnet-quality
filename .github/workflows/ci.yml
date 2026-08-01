@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: ${{ matrix.os }} / Node 24
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install package metadata
+        run: npm ci
+
+      - name: Validate npm CLI and tarball
+        run: npm run ci
+
+      - name: Validate workflow state machine
+        shell: pwsh
+        run: ./tests/Invoke-WorkflowRegression.ps1
+
+      - name: Validate upgrade and rollback
+        shell: pwsh
+        run: ./tests/Invoke-UpgradeRegression.ps1
+
+      - name: Validate language adapters
+        shell: pwsh
+        run: ./tests/Invoke-AdapterRegression.ps1
+
+      - name: Parse all PowerShell files
+        shell: pwsh
+        run: |
+          $errors = [System.Collections.Generic.List[object]]::new()
+          Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            foreach ($parseError in @($parseErrors)) { $errors.Add($parseError) }
+          }
+          if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Error }
+
+      - name: Upload regression evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-evidence-${{ matrix.os }}
+          path: |
+            **/.ai-quality/evidence/**
+            **/TestResults/**
+          if-no-files-found: ignore

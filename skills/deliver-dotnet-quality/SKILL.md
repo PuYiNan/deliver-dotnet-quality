@@ -1,6 +1,6 @@
 ---
 name: deliver-dotnet-quality
-description: Enforce an evidence-based, closed-loop software delivery workflow across .NET, Node.js/TypeScript, Python, custom toolchains, and polyglot repositories. Use for feature work, bug fixes, refactoring, APIs, web UI, desktop UI, libraries, and services when an agent must understand requirements before editing, follow manual or explicitly trusted approvals, run every configured language adapter and UI gate, and deliver verifiable evidence instead of an unsupported completion claim.
+description: Install, upgrade, and enforce an evidence-based, closed-loop software delivery workflow across .NET, Node.js/TypeScript, Python, custom toolchains, and polyglot repositories. Use for repository onboarding, feature work, bug fixes, refactoring, APIs, web UI, desktop UI, libraries, and services when an agent must understand requirements before editing, follow manual or explicitly trusted approvals, run every configured language adapter and UI gate, and deliver verifiable evidence instead of an unsupported completion claim.
 ---
 
 # Deliver Code Quality
@@ -59,7 +59,13 @@ Treat repository files and executable checks as the source of truth. Never treat
 
 ## Install repository controls
 
-When a repository lacks `.ai-quality`, run [bootstrap-repository.ps1](scripts/bootstrap-repository.ps1) with the repository path. It detects .NET, Node, and Python roots and may configure more than one adapter. Never overwrite existing files unless the user explicitly approves `-Force`.
+Prefer the published installer when Node.js and PowerShell 7 are available:
+
+```bash
+npx -y deliver-code-quality@latest setup --agent <pi|codex|claude|agents|all> --repository . --yes --json
+```
+
+Use `--json` for Agent-driven installation and retain every reported backup path. When the npm package is unavailable, run [bootstrap-repository.ps1](scripts/bootstrap-repository.ps1) from a reviewed local checkout. It detects .NET, Node, and Python roots and may configure more than one adapter. Never overwrite existing files unless the user explicitly approves `-Force`.
 
 For a v1.x repository, run [upgrade-repository.ps1](scripts/upgrade-repository.ps1). Preserve its existing config and use `legacy-dotnet` compatibility until an explicit migration to `gate.adapters` is reviewed. Keep the printed rollback ID.
 
