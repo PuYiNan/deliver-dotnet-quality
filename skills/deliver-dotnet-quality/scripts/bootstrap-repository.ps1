@@ -77,7 +77,7 @@ if ($detected.Count -eq 0) {
 }
 
 $collisions = [System.Collections.Generic.List[string]]::new()
-Get-ChildItem -LiteralPath $source -Recurse -File | ForEach-Object {
+Get-ChildItem -LiteralPath $source -Recurse -File -Force | ForEach-Object {
     $relative = [IO.Path]::GetRelativePath($source, $_.FullName)
     if ((Test-Path -LiteralPath (Join-Path $target $relative)) -and -not $Force) { $collisions.Add($relative) }
 }
@@ -89,7 +89,7 @@ if ($Preflight) {
 }
 if (-not $PSCmdlet.ShouldProcess($target, 'Install AI quality workflow')) { return }
 
-Get-ChildItem -LiteralPath $source -Recurse -File | ForEach-Object {
+Get-ChildItem -LiteralPath $source -Recurse -File -Force | ForEach-Object {
     $relative = [IO.Path]::GetRelativePath($source, $_.FullName)
     $destination = Join-Path $target $relative
     $destinationDirectory = Split-Path -Parent $destination
