@@ -9,6 +9,18 @@ $qualityRoot = Join-Path $repoRoot '.ai-quality'
 $configPath = Join-Path $qualityRoot 'config.json'
 $config = if (Test-Path -LiteralPath $configPath) { Get-Content -Raw -LiteralPath $configPath | ConvertFrom-Json } else { [pscustomobject]@{} }
 $approvalMode = if ($config.approvalMode) { [string]$config.approvalMode } else { 'manual' }
+$hasDeclarativeAdapters = $config.gate -and @($config.gate.adapters).Count -gt 0
+$hasLegacyDotnetConfig = $config.PSObject.Properties.Name -contains 'solution' -or $config.PSObject.Properties.Name -contains 'requireFormatCheck'
+$gateAdapters = if ($hasDeclarativeAdapters) {
+    @($config.gate.adapters | ForEach-Object {
+        [pscustomobject]@{ id = [string]$_.id; type = [string]$_.type; required = if ($null -ne $_.required) { [bool]$_.required } else { $true }; workingDirectory = if ($_.workingDirectory) { [string]$_.workingDirectory } else { '.' } }
+    })
+} elseif ($hasLegacyDotnetConfig) {
+    @([pscustomobject]@{ id = 'dotnet'; type = 'dotnet'; required = $true; workingDirectory = '.'; compatibility = 'legacy-dotnet' })
+} else {
+    @()
+}
+$gateAdapters = @($gateAdapters)
 if (-not $WorkItemId) {
     $WorkItemId = (Get-Content -Raw -LiteralPath (Join-Path $qualityRoot 'active-work-item.txt')).Trim()
 }
@@ -37,6 +49,8 @@ $result = [ordered]@{
     uiScope = $state.uiScope
     approvalMode = $approvalMode
     independentReview = ($approvalMode -eq 'manual')
+    gateConfigured = ($gateAdapters.Count -gt 0)
+    gateAdapters = $gateAdapters
     allowedAction = $allowed
     path = [IO.Path]::GetRelativePath($repoRoot, $item)
 }

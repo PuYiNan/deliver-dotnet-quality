@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0 - 2026-08-01
+
+- Extracted a language-neutral quality-gate orchestrator from the former hard-coded .NET gate.
+- Added composable .NET, Node.js, Python, and generic command adapters with unified schema-version-2 evidence.
+- Added automatic multi-stack detection during bootstrap and required-adapter support for polyglot repositories.
+- Preserved v1.x `solution` / `requireFormatCheck` behavior through `legacy-dotnet` compatibility mode.
+- Added an upgrade tool that preserves repository state and configuration, creates backups, and supports tested rollback.
+- Hardened Delivery validation against changed gate configuration or adapter implementations.
+
 ## 1.1.0 - 2026-08-01
 
 - Added an explicit repository-level trusted approval mode while preserving manual approval as the default.

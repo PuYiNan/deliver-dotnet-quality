@@ -10,8 +10,8 @@ This file defines expected behavior independently of the implementation. Changin
 
 | Environment | Required | Reason |
 |---|---:|---|
-| Release build | Yes | Production-equivalent compilation |
-| [TODO: database/browser/Windows UI] | [Yes/No] | [TODO] |
+| Production-equivalent build/package | Yes | Validate every required technology-stack adapter |
+| [TODO: runtime/database/browser/desktop UI] | [Yes/No] | [TODO] |
 
 ## Regression scope
 

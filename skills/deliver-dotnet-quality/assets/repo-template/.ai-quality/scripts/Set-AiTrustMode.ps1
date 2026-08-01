@@ -40,7 +40,7 @@ if ($Enable) {
     Write-Warning 'State checks, artifact hashes, Full verification, and delivery validation remain mandatory, but independent review is removed.'
     $confirmation = Read-Host "Type exactly: $challenge"
     if ($confirmation -cne $challenge) { throw 'Trusted mode was not enabled: confirmation did not match.' }
-    Set-ConfigProperty 'schemaVersion' 2
+    if (-not $config.schemaVersion -or [int]$config.schemaVersion -lt 2) { Set-ConfigProperty 'schemaVersion' 2 }
     Set-ConfigProperty 'approvalMode' 'trusted'
     Set-ConfigProperty 'trustedApprover' 'agent:trusted-mode'
     Set-ConfigProperty 'trustAuthorizedBy' $AuthorizedBy
@@ -49,7 +49,7 @@ if ($Enable) {
     Write-Host "Trusted mode enabled by $AuthorizedBy."
 }
 else {
-    Set-ConfigProperty 'schemaVersion' 2
+    if (-not $config.schemaVersion -or [int]$config.schemaVersion -lt 2) { Set-ConfigProperty 'schemaVersion' 2 }
     Set-ConfigProperty 'approvalMode' 'manual'
     Set-ConfigProperty 'trustAuthorizedBy' ''
     Set-ConfigProperty 'trustAuthorizedAt' ''

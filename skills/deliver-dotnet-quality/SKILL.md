@@ -1,9 +1,9 @@
 ---
 name: deliver-dotnet-quality
-description: Enforce an evidence-based, closed-loop workflow for C# and .NET feature work, bug fixes, refactoring, APIs, web UI, and Windows desktop UI. Use when an agent must understand requirements before editing, follow either manual or explicitly enabled trusted approvals, implement in small slices, run deterministic quality gates, test user-visible behavior, and deliver verifiable evidence instead of an unsupported completion claim.
+description: Enforce an evidence-based, closed-loop software delivery workflow across .NET, Node.js/TypeScript, Python, custom toolchains, and polyglot repositories. Use for feature work, bug fixes, refactoring, APIs, web UI, desktop UI, libraries, and services when an agent must understand requirements before editing, follow manual or explicitly trusted approvals, run every configured language adapter and UI gate, and deliver verifiable evidence instead of an unsupported completion claim.
 ---
 
-# Deliver .NET Quality
+# Deliver Code Quality
 
 Treat repository files and executable checks as the source of truth. Never treat an agent's confidence as evidence.
 
@@ -32,7 +32,8 @@ Treat repository files and executable checks as the source of truth. Never treat
 - Complete `plan.md` and `test-matrix.md`.
 - Map every planned change and test to at least one acceptance criterion.
 - Prefer small vertical slices. Preserve unrelated user changes.
-- Select the .NET and UI verification layers using [dotnet-verification.md](references/dotnet-verification.md) and [ui-verification.md](references/ui-verification.md).
+- Read [gate-adapters.md](references/gate-adapters.md). Confirm every affected technology stack has a required adapter before implementation.
+- Read [dotnet-verification.md](references/dotnet-verification.md) for .NET scope, [language-verification.md](references/language-verification.md) for Node/Python/custom stacks, and [ui-verification.md](references/ui-verification.md) for user-visible behavior.
 
 ### Implementation
 
@@ -44,7 +45,8 @@ Treat repository files and executable checks as the source of truth. Never treat
 ### Verification
 
 - Run `.ai-quality/scripts/Invoke-AiQualityGate.ps1 -WorkItemId <id> -Mode Full`.
-- Fix implementation failures and rerun the complete gate.
+- Require every configured required adapter to pass. In a polyglot repository, do not treat one stack's success as completion for another.
+- Fix implementation failures and rerun the complete multi-adapter gate.
 - If UI is in scope, collect screenshots/traces and run the configured UI hook. Do not substitute source inspection for executing the UI.
 - Run `.ai-quality/scripts/Test-AiDelivery.ps1 -WorkItemId <id>` before reporting completion.
 
@@ -57,7 +59,9 @@ Treat repository files and executable checks as the source of truth. Never treat
 
 ## Install repository controls
 
-When a repository lacks `.ai-quality`, run [bootstrap-repository.ps1](scripts/bootstrap-repository.ps1) with the repository path. Never overwrite existing files unless the user explicitly approves `-Force`.
+When a repository lacks `.ai-quality`, run [bootstrap-repository.ps1](scripts/bootstrap-repository.ps1) with the repository path. It detects .NET, Node, and Python roots and may configure more than one adapter. Never overwrite existing files unless the user explicitly approves `-Force`.
+
+For a v1.x repository, run [upgrade-repository.ps1](scripts/upgrade-repository.ps1). Preserve its existing config and use `legacy-dotnet` compatibility until an explicit migration to `gate.adapters` is reviewed. Keep the printed rollback ID.
 
 ## Non-negotiable stop conditions
 
@@ -66,6 +70,7 @@ Stop and report the blocking state when:
 - requirements or test expectations are materially ambiguous;
 - the next state lacks the required approval and the active mode does not authorize the agent to create it;
 - a required dependency or environment is unavailable;
+- an affected language or package root lacks a required gate adapter;
 - a quality gate fails after implementation attempts;
 - UI evidence is required but the application cannot be executed;
 - completion would require skipping or weakening a check.

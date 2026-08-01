@@ -60,6 +60,8 @@ try {
     Invoke-Aq -Arguments @('new', '-Title', 'Trusted regression', '-Id', $trustedId)
     Invoke-Aq -Arguments @('approve', '-Stage', 'Requirements', '-WorkItemId', $trustedId) -ExpectedExit 1
     Invoke-AqWithInput -Arguments @('trust', '-Enable', '-AuthorizedBy', 'Regression User') -InputLine 'ENABLE TRUSTED MODE' | Out-Null
+    $enabledConfig = Get-Content -Raw -LiteralPath (Join-Path $repo '.ai-quality\config.json') | ConvertFrom-Json
+    Assert-True ([int]$enabledConfig.schemaVersion -eq 3) 'Trust mode does not downgrade the gate configuration schema.'
 
     Set-Artifact $trustedId 'spec.md' @'
 # Trusted regression

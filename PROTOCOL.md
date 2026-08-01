@@ -1,4 +1,4 @@
-# Agent-neutral delivery protocol v1
+# Agent-neutral delivery protocol v2
 
 This protocol defines behavior between any coding agent, a repository, a human approver, and CI. It does not define a model API or conversation format.
 
@@ -11,7 +11,8 @@ An implementation MUST provide:
 - `.ai-quality/active-work-item.txt`: active ID;
 - `.ai-quality/work-items/<id>/state.json`: machine-readable state;
 - specification, plan, test contract, approval, evidence, and delivery artifacts;
-- a Full verification command with a non-zero failure exit code.
+- a Full verification command with a non-zero failure exit code;
+- one or more required gate adapters covering every affected technology stack.
 
 ## CLI contract
 
@@ -20,7 +21,7 @@ pwsh ./aq.ps1 new -Title <text> [-Id <id>] [-UiScope]
 pwsh ./aq.ps1 status [-WorkItemId <id>] [-Json]
 pwsh ./aq.ps1 trust [-Enable -AuthorizedBy <human> | -Disable]
 pwsh ./aq.ps1 approve -Stage <Requirements|Plan|Tests|Delivery> -WorkItemId <id> [-ApprovedBy <human>]
-pwsh ./aq.ps1 verify -WorkItemId <id> -Mode <Quick|Full> [-Target <solution>]
+pwsh ./aq.ps1 verify -WorkItemId <id> -Mode <Quick|Full> [-Target <legacy-single-dotnet-target>]
 pwsh ./aq.ps1 check-delivery -WorkItemId <id>
 ```
 
@@ -54,14 +55,35 @@ For protected repositories, approval authority SHOULD be a human PR reviewer or 
 A passing Full run MUST record:
 
 - work-item ID and approved specification hash;
-- exact target and mode;
+- exact adapter IDs, types, required flags, targets, working directories, adapter implementation hashes, and mode;
 - start and finish timestamps;
 - each executed command, exit code, status, and log path;
 - test-result artifacts;
 - UI hook result when UI scope is true;
 - overall result.
 
+For schema-version-2 evidence, Delivery validation MUST reject a stale gate configuration, a changed required adapter implementation, a missing required adapter, or a required adapter whose status is not `Passed`.
+
 Delivery MUST be rejected when any acceptance criterion lacks PASS evidence, or when a required check is failed, skipped, unavailable, or unverified.
+
+## Gate adapter contract
+
+The workflow core MUST NOT hard-code a language command. A gate adapter MUST resolve a technology-specific target into ordered executable steps containing:
+
+- stable adapter and step IDs;
+- executable file plus argument array, never an opaque shell command string;
+- repository-contained working directory;
+- target identity and required/optional status.
+
+The core MUST execute and normalize every adapter into common evidence. All configured required adapters MUST pass before a Full gate can transition to `verification-passed`. Optional adapters may be skipped only with an explicit recorded reason.
+
+Implementations SHOULD provide built-in .NET, Node.js, and Python adapters plus a reviewed command adapter for other toolchains. A polyglot repository composes adapters; it does not choose one language winner.
+
+Workflow configuration and adapter implementations are protected controls. An implementing Agent MUST NOT weaken, delete, or replace them merely to make product changes pass.
+
+## v1.x compatibility contract
+
+If `gate.adapters` is absent or empty and the config contains the v1.x `solution` / `requireFormatCheck` fields, the resolver MUST create one implicit required .NET adapter and mark evidence as `legacy-dotnet`. Upgrade tooling MUST preserve the existing config, work items, evidence, templates, and hooks, create a rollback manifest, and allow restoration of every replaced or newly added workflow file.
 
 ## Harness adapter contract
 
