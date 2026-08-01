@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory)] [string] $RepositoryPath,
     [switch] $IncludeAgentInstructions,
-    [string] $Rollback
+    [string] $Rollback,
+    [switch] $Preflight
 )
 
 $ErrorActionPreference = 'Stop'
@@ -24,6 +25,7 @@ if ($Rollback) {
     $manifestPath = Join-Path $backupRoot 'manifest.json'
     if (-not (Test-Path -LiteralPath $manifestPath)) { throw "Unknown upgrade backup: $Rollback" }
     $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
+    if ($Preflight) { Write-Host "Rollback preflight passed for $Rollback."; return }
     if (-not $PSCmdlet.ShouldProcess($repoRoot, "Rollback AI quality upgrade $Rollback")) { return }
     foreach ($entry in @($manifest.files)) {
         $destination = Assert-RepositoryPath (Join-Path $repoRoot ([string]$entry.relativePath))
@@ -57,6 +59,10 @@ if ($IncludeAgentInstructions) {
 
 $backupId = Get-Date -Format 'yyyyMMdd-HHmmss'
 $backupRoot = Assert-RepositoryPath (Join-Path $qualityRoot "upgrade-backups\$backupId")
+$configPath = Join-Path $qualityRoot 'config.json'
+$config = Get-Content -Raw -LiteralPath $configPath | ConvertFrom-Json
+$configurationMode = if ($config.gate -and @($config.gate.adapters).Count -gt 0) { 'declarative' } else { 'legacy-dotnet' }
+if ($Preflight) { Write-Host "Upgrade preflight passed for $repoRoot"; return }
 if (-not $PSCmdlet.ShouldProcess($repoRoot, "Upgrade AI quality workflow; backup $backupId")) { return }
 New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
 $manifestEntries = [System.Collections.Generic.List[object]]::new()
@@ -77,9 +83,6 @@ foreach ($relative in $relativeFiles) {
     $manifestEntries.Add([pscustomobject]@{ relativePath = $relative.Replace('\', '/'); existed = $existed })
 }
 
-$configPath = Join-Path $qualityRoot 'config.json'
-$config = Get-Content -Raw -LiteralPath $configPath | ConvertFrom-Json
-$configurationMode = if ($config.gate -and @($config.gate.adapters).Count -gt 0) { 'declarative' } else { 'legacy-dotnet' }
 [ordered]@{
     schemaVersion = 1
     backupId = $backupId

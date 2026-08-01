@@ -1,13 +1,18 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter(Mandatory)] [string] $RepositoryPath,
-    [ValidateSet('dotnet', 'node', 'python', 'command')] [string[]] $Adapters,
-    [switch] $Force
+    [string[]] $Adapters,
+    [switch] $Force,
+    [switch] $Preflight
 )
 
 $ErrorActionPreference = 'Stop'
 $source = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\assets\repo-template')).Path
 $target = (Resolve-Path -LiteralPath $RepositoryPath).Path
+
+$Adapters = @($Adapters | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ })
+$unsupportedAdapters = @($Adapters | Where-Object { $_ -notin @('dotnet', 'node', 'python', 'command') })
+if ($unsupportedAdapters.Count -gt 0) { throw "Unsupported adapter(s): $($unsupportedAdapters -join ', ')." }
 
 $recognizedNames = @('package.json', 'pyproject.toml', 'requirements.txt', 'setup.py')
 $recognizedFiles = @(
@@ -72,14 +77,19 @@ if ($detected.Count -eq 0) {
 }
 
 $collisions = [System.Collections.Generic.List[string]]::new()
-Get-ChildItem -LiteralPath $source -Recurse -File | ForEach-Object {
+Get-ChildItem -LiteralPath $source -Recurse -File -Force | ForEach-Object {
     $relative = [IO.Path]::GetRelativePath($source, $_.FullName)
     if ((Test-Path -LiteralPath (Join-Path $target $relative)) -and -not $Force) { $collisions.Add($relative) }
 }
 if ($collisions.Count -gt 0) { throw "Refusing to overwrite existing files. Re-run with -Force only after review:`n$($collisions -join "`n")" }
+if ($Preflight) {
+    Write-Host "Bootstrap preflight passed for $target"
+    Write-Host "Configured adapters would be: $(@($detected | ForEach-Object id) -join ', ')"
+    return
+}
 if (-not $PSCmdlet.ShouldProcess($target, 'Install AI quality workflow')) { return }
 
-Get-ChildItem -LiteralPath $source -Recurse -File | ForEach-Object {
+Get-ChildItem -LiteralPath $source -Recurse -File -Force | ForEach-Object {
     $relative = [IO.Path]::GetRelativePath($source, $_.FullName)
     $destination = Join-Path $target $relative
     $destinationDirectory = Split-Path -Parent $destination

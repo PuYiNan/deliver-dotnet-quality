@@ -1,4 +1,4 @@
 interface:
   display_name: "Closed-Loop Code Delivery"
-  short_description: "Cross-stack requirements, gates, tests, and evidence"
-  default_prompt: "Use $deliver-dotnet-quality to deliver this software task through approved requirements, multi-stack quality gates, and evidence-based acceptance."
+  short_description: "Install and enforce cross-stack delivery quality"
+  default_prompt: "Use $deliver-dotnet-quality to install or upgrade repository controls and deliver this software task through approved requirements, multi-stack gates, and evidence-based acceptance."

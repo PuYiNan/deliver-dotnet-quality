@@ -43,6 +43,13 @@ Validated on 2026-08-01 using Windows, PowerShell 7, Node.js 24, Python 3.12, an
 - Changing trust metadata did not invalidate language-gate evidence because the fingerprint covers only verification-relevant configuration.
 - The v1.x upgrade tool preserved config byte-for-byte, installed the new core/adapters, created a manifest, and restored both replaced and newly added files during rollback.
 - Reference CI setup versions were checked against the current official GitHub Actions and Azure Pipelines task documentation.
+- The zero-runtime-dependency npm CLI passed help, version, environment doctor, deterministic JSON output, explicit multi-adapter transport, repository initialization, and safe upgrade tests.
+- Pi, Codex, Claude Code, and portable Agent Skills global path resolution passed with environment overrides.
+- Global Skill installation was copied through a staging directory, verified byte-for-byte, replaced with a timestamped backup, and restored without deleting the displaced installation.
+- `setup --yes --json` installed a selected Agent Skill and initialized a real detected repository without interactive input.
+- A generated npm tarball contained only the declared runtime files, installed into a clean temporary project, executed its packaged CLI, and installed its packaged Skill successfully.
+- `package.json`, `VERSION`, release configuration, Skill resources, all JSON, and all YAML files passed deterministic validation.
+- The repository's complete Git patch history contained no recognized GitHub/npm token forms or developer-specific absolute paths before the planned public visibility change.
 
 ## Not executed in this environment
 

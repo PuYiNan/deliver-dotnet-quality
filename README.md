@@ -1,6 +1,10 @@
 # AI Agent 高质量闭环工程套件（语言无关内核）
 
-当前版本：`2.0.0`
+当前版本：`2.0.0` <!-- x-release-please-version -->
+
+[![CI](https://github.com/PuYiNan/deliver-dotnet-quality/actions/workflows/ci.yml/badge.svg)](https://github.com/PuYiNan/deliver-dotnet-quality/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/deliver-code-quality.svg)](https://www.npmjs.com/package/deliver-code-quality)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 这个套件把“先理解、再实现、用证据交付”变成与 Agent 厂商无关的仓库协议、CLI、状态机和 CI 门禁。Claude Code、Pi、Codex 只是协议的适配器；即使更换 Agent，任务状态、审批哈希、测试命令和证据格式都不变。
 
@@ -36,9 +40,57 @@ Codex ───────┘                              │
 - UI Hook：可接 Playwright、Appium、FlaUI 或项目自己的端到端脚本。
 - GitHub Actions 和 Azure Pipelines 示例。
 
+## 60 秒安装
+
+要求：Node.js 20+ 和 PowerShell 7（`pwsh`）。下面一条命令会安装指定 Agent 的全局 Skill，并在当前仓库不存在工作流时执行初始化、已经存在时执行安全升级：
+
+```bash
+npx -y deliver-code-quality@latest setup --agent pi --repository . --yes
+```
+
+把 `pi` 换成 `codex`、`claude`、`agents` 或 `all` 即可安装到其他 Agent。安装器会在替换旧 Skill 前创建时间戳备份；项目升级继续保留原有配置、工作项、证据和 Hook。
+
+公共 npm 首次发布前，可在仓库公开后直接从 GitHub 运行同一个 CLI：
+
+```bash
+npx -y github:PuYiNan/deliver-dotnet-quality setup --agent pi --repository . --yes
+```
+
+需要长期使用命令时，也可以全局安装：
+
+```bash
+npm install --global deliver-code-quality
+deliver-quality setup --agent pi --repository . --yes
+```
+
+只检查环境，不写文件：
+
+```bash
+npx -y deliver-code-quality@latest doctor --json
+npx -y deliver-code-quality@latest install-skill --agent pi --dry-run --json
+```
+
+适合 AI Agent 的确定性安装命令始终使用 `--yes --json`，不要让 Agent 猜测交互式问题：
+
+```bash
+npx -y deliver-code-quality@latest setup \
+  --agent all \
+  --repository . \
+  --yes \
+  --json
+```
+
+详细的全局路径、恢复和离线安装方式见 [Agent 安装指南](docs/agent-installation.md)。
+
 ## 1. 安装到源码仓库
 
-从本套件目录执行：
+推荐使用 npm CLI：
+
+```bash
+npx -y deliver-code-quality@latest init 'D:\src\YourProduct'
+```
+
+也可以从本套件源码目录执行底层脚本：
 
 ```powershell
 ./skills/deliver-dotnet-quality/scripts/bootstrap-repository.ps1 -RepositoryPath 'D:\src\YourProduct'
@@ -212,6 +264,22 @@ v1.x 的 `solution` 与 `requireFormatCheck` 配置仍受支持，运行时会�
 ```
 
 需要同步项目级 Agent 指令时，审查后增加 `-IncludeAgentInstructions`。脚本会输出备份 ID；使用同一脚本的 `-Rollback '<backup-id>'` 可恢复被替换文件。确认兼容模式 Full Gate 通过后，再单独评审是否迁移为显式 `gate.adapters`。
+
+npm CLI 的等价命令是：
+
+```bash
+npx -y deliver-code-quality@latest upgrade . --include-agent-instructions
+npx -y deliver-code-quality@latest upgrade . --rollback '<backup-id>'
+```
+
+## 自动构建与发布
+
+- 每个 PR 和 `main` 推送都会在 Windows、Linux 上执行 CLI、npm tarball、状态机、升级回滚和真实多语言适配器回归。
+- Conventional Commit 合入 `main` 后，Release Please 自动创建或更新 Release PR。
+- Release PR 合并后，流水线重新验证版本和全部测试，创建 GitHub Release、发布公共 npm 包，并上传相同的 `.tgz` 构件。
+- npm 发布优先使用 GitHub Actions OIDC Trusted Publisher，不在仓库中保存长期 token。
+
+仓库管理员只需完成一次 npm 身份引导和 GitHub Actions 权限设置，详见 [发布指南](docs/releasing.md)。
 
 ## 状态流
 
