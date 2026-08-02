@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/PuYiNan/deliver-dotnet-quality/compare/v2.1.0...v2.1.1) (2026-08-02)
+
+
+### Bug Fixes
+
+* **release:** publish through npm trusted publisher ([#7](https://github.com/PuYiNan/deliver-dotnet-quality/issues/7)) ([6997832](https://github.com/PuYiNan/deliver-dotnet-quality/commit/6997832859ea03eebd650469497edf8e3ac4b845))
+
 ## [2.1.0](https://github.com/PuYiNan/deliver-dotnet-quality/compare/v2.0.0...v2.1.0) (2026-08-01)
 
 
