@@ -2,8 +2,8 @@
 param()
 
 $ErrorActionPreference = 'Stop'
-$source = (Resolve-Path (Join-Path $PSScriptRoot '..\skills\deliver-dotnet-quality\assets\repo-template')).Path
-$testRoot = Join-Path ([IO.Path]::GetTempPath()) "deliver-dotnet-quality-$([guid]::NewGuid().ToString('N'))"
+$source = (Resolve-Path (Join-Path $PSScriptRoot '..\skills\deliver-code-quality\assets\repo-template')).Path
+$testRoot = Join-Path ([IO.Path]::GetTempPath()) "deliver-code-quality-$([guid]::NewGuid().ToString('N'))"
 $repo = Join-Path $testRoot 'repo'
 
 function Assert-True([bool] $Condition, [string] $Message) {

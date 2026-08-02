@@ -17,9 +17,11 @@ assert.equal(packageJson.publishConfig.registry, 'https://registry.npmjs.org/');
 assert.equal(packageJson.repository.url, 'git+https://github.com/PuYiNan/deliver-code-quality.git');
 assert.ok(fs.existsSync(path.join(root, 'LICENSE')));
 
-const skillRoot = path.join(root, 'skills', 'deliver-dotnet-quality');
+const skillRoot = path.join(root, 'skills', 'deliver-code-quality');
 const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
-assert.match(skill, /^---\nname: deliver-dotnet-quality\ndescription: .+\n---/s);
+assert.match(skill, /^---\nname: deliver-code-quality\ndescription: .+\n---/s);
+assert.equal(path.basename(skillRoot), 'deliver-code-quality');
+assert.ok(!fs.existsSync(path.join(root, 'skills', 'deliver-dotnet-quality')));
 for (const relative of [
   'agents/openai.yaml',
   'scripts/bootstrap-repository.ps1',
@@ -31,12 +33,21 @@ for (const relative of [
 ]) {
   assert.ok(fs.existsSync(path.join(skillRoot, relative)), `missing Skill resource: ${relative}`);
 }
+for (const relative of [
+  'assets/repo-template/.agents/skills/deliver-code-quality/SKILL.md',
+  'assets/repo-template/.claude/skills/deliver-code-quality/SKILL.md',
+]) {
+  const agentSkill = fs.readFileSync(path.join(skillRoot, relative), 'utf8');
+  assert.match(agentSkill, /^---\nname: deliver-code-quality\ndescription: .+\n---/s);
+}
+assert.ok(!fs.existsSync(path.join(skillRoot, 'assets/repo-template/.agents/skills/deliver-dotnet-quality')));
+assert.ok(!fs.existsSync(path.join(skillRoot, 'assets/repo-template/.claude/skills/deliver-dotnet-quality')));
 
 for (const file of ['package.json', 'release-please-config.json', '.release-please-manifest.json']) {
   JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
 }
 
-const sensitivePath = /C:\\Users\\LiJia|D:\\LXCODE\\PIAgent\\deliver-dotnet-quality/i;
+const sensitivePath = /C:\\Users\\LiJia|D:\\LXCODE\\PIAgent/i;
 function inspect(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     if (entry.name === '.git' || entry.name === 'node_modules') continue;

@@ -1,6 +1,6 @@
 # Validation record
 
-Validated on 2026-08-01 using Windows, PowerShell 7, Node.js 24, Python 3.12, and .NET SDK 10.0.302.
+Validated on 2026-08-02 using Windows, PowerShell 7, Node.js 24, Python 3.12, and .NET SDK 10.0.302.
 
 ## Passed checks
 
@@ -46,6 +46,9 @@ Validated on 2026-08-01 using Windows, PowerShell 7, Node.js 24, Python 3.12, an
 - The zero-runtime-dependency npm CLI passed help, version, environment doctor, deterministic JSON output, explicit multi-adapter transport, repository initialization, and safe upgrade tests.
 - Pi, Codex, Claude Code, and portable Agent Skills global path resolution passed with environment overrides.
 - Global Skill installation was copied through a staging directory, verified byte-for-byte, replaced with a timestamped backup, and restored without deleting the displaced installation.
+- The canonical Skill folder, frontmatter name, OpenAI invocation, Pi project Skill, and Claude project Skill all use `deliver-code-quality`.
+- A legacy global Skill migrated to the canonical directory without leaving two active discoverable Skills; its backup was stored outside the active `skills` root and rollback restored the legacy installation while moving the canonical installation aside.
+- Repository upgrade replaced legacy Pi/portable and Claude project-level Skill identifiers, recorded the removals in the rollback manifest, and restored the exact legacy files during rollback.
 - `setup --yes --json` installed a selected Agent Skill and initialized a real detected repository without interactive input.
 - A generated npm tarball contained only the declared runtime files, installed into a clean temporary project, executed its packaged CLI, and installed its packaged Skill successfully.
 - `package.json`, `VERSION`, release configuration, Skill resources, all JSON, and all YAML files passed deterministic validation.

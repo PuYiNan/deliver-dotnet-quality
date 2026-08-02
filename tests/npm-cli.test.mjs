@@ -5,11 +5,12 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { installSkill, restoreSkill, verifyTrees } from '../lib/installer.mjs';
+import { installSkill, legacySkillNames, restoreSkill, skillName, verifyTrees } from '../lib/installer.mjs';
 import { resolveAgentSelection, resolveAgentSkillRoot } from '../lib/paths.mjs';
 
 const repositoryRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
-const skillSource = path.join(repositoryRoot, 'skills', 'deliver-dotnet-quality');
+const skillSource = path.join(repositoryRoot, 'skills', skillName);
+const legacySkillName = legacySkillNames[0];
 const cli = path.join(repositoryRoot, 'bin', 'deliver-quality.mjs');
 const expectedVersion = JSON.parse(await fs.readFile(path.join(repositoryRoot, 'package.json'), 'utf8')).version;
 
@@ -52,7 +53,30 @@ test('installs atomically, backs up an existing Skill, and restores it', async (
 
   const restored = await restoreSkill({ root, backup: second.backup });
   assert.equal(await fs.readFile(path.join(restored.target, 'local-marker.txt'), 'utf8'), 'old installation');
-  assert.ok(restored.displaced);
+  assert.equal(restored.displaced.length, 1);
+});
+
+test('migrates a legacy Skill without leaving two active identifiers and can roll back', async (context) => {
+  const base = await temporaryDirectory('deliver-quality-migrate');
+  context.after(() => fs.rm(base, { recursive: true, force: true }));
+  const root = path.join(base, 'skills');
+  await fs.mkdir(root);
+  const legacyTarget = path.join(root, legacySkillName);
+  await fs.mkdir(legacyTarget, { recursive: true });
+  await fs.writeFile(path.join(legacyTarget, 'SKILL.md'), `---\nname: ${legacySkillName}\ndescription: legacy\n---\n`, 'utf8');
+  await fs.writeFile(path.join(legacyTarget, 'local-marker.txt'), 'legacy installation', 'utf8');
+
+  const installed = await installSkill({ source: skillSource, root, agent: 'test', now: new Date('2026-08-02T00:00:00Z') });
+  assert.equal(installed.migrations.length, 1);
+  assert.equal(installed.migrations[0].skill, legacySkillName);
+  assert.equal(path.dirname(installed.migrations[0].backup), path.join(path.dirname(root), 'skill-backups'));
+  await assert.rejects(fs.stat(legacyTarget), { code: 'ENOENT' });
+  await verifyTrees(skillSource, path.join(root, skillName));
+
+  const restored = await restoreSkill({ root, backup: installed.migrations[0].backup });
+  assert.equal(restored.restoredSkillName, legacySkillName);
+  assert.equal(await fs.readFile(path.join(legacyTarget, 'local-marker.txt'), 'utf8'), 'legacy installation');
+  await assert.rejects(fs.stat(path.join(root, skillName)), { code: 'ENOENT' });
 });
 
 test('packaged CLI reports help, version, and JSON doctor output', () => {
@@ -102,7 +126,7 @@ test('setup installs the selected global Skill and initializes a repository non-
   ]).stdout);
   assert.equal(result.operation, 'init');
   assert.equal(result.installations[0].agent, 'pi');
-  await verifyTrees(skillSource, path.join(skillsRoot, 'deliver-dotnet-quality'));
+  await verifyTrees(skillSource, path.join(skillsRoot, skillName));
   assert.equal(JSON.parse(await fs.readFile(path.join(product, '.ai-quality', 'config.json'), 'utf8')).gate.adapters[0].type, 'python');
 });
 
@@ -119,5 +143,6 @@ test('setup preflight leaves the global Skill untouched when repository bootstra
   ], { cwd: repositoryRoot, encoding: 'utf8', windowsHide: true });
   assert.equal(result.status, 1);
   assert.match(JSON.parse(result.stderr).error, /does not look like a source repository/);
-  await assert.rejects(fs.stat(path.join(skillsRoot, 'deliver-dotnet-quality')), { code: 'ENOENT' });
+  await assert.rejects(fs.stat(path.join(skillsRoot, skillName)), { code: 'ENOENT' });
+  await assert.rejects(fs.stat(path.join(skillsRoot, legacySkillName)), { code: 'ENOENT' });
 });

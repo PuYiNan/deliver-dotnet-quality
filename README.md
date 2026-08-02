@@ -28,7 +28,7 @@ Codex ───────┘                              │
 
 - `aq.ps1`：所有 Agent 和人类使用的统一入口，支持 `new/status/trust/approve/verify/check-delivery`。
 - `.ai-quality`：Agent 无关的工作项、状态机、审批、门禁和证据协议。
-- `skills/deliver-dotnet-quality`：为兼容现有安装保留名称的可移植技能包；能力已覆盖 .NET、Node、Python、自定义工具链和多语言仓库。
+- `skills/deliver-code-quality`：语言无关的可移植技能包，能力覆盖 .NET、Node、Python、自定义工具链和多语言仓库。
 - `AGENTS.md`、`CLAUDE.md`：启动时上下文适配。
 - `.agents/skills`：Pi 和兼容 Agent Skills 的项目级技能适配。
 - `.claude/skills` 与可选 PreToolUse Hook：Claude Code 适配。
@@ -48,7 +48,7 @@ Codex ───────┘                              │
 npx -y deliver-code-quality@latest setup --agent pi --repository . --yes
 ```
 
-把 `pi` 换成 `codex`、`claude`、`agents` 或 `all` 即可安装到其他 Agent。安装器会在替换旧 Skill 前创建时间戳备份；项目升级继续保留原有配置、工作项、证据和 Hook。
+把 `pi` 换成 `codex`、`claude`、`agents` 或 `all` 即可安装到其他 Agent。正式 Skill ID 是 `deliver-code-quality`；安装器会自动迁移旧的 `deliver-dotnet-quality` 活动目录，把备份移到 Agent 配置目录下的 `skill-backups`，避免两个 Skill 被同时发现。项目升级继续保留原有配置、工作项、证据和 Hook。
 
 公共 npm 首次发布前，可在仓库公开后直接从 GitHub 运行同一个 CLI：
 
@@ -93,13 +93,13 @@ npx -y deliver-code-quality@latest init 'D:\src\YourProduct'
 也可以从本套件源码目录执行底层脚本：
 
 ```powershell
-./skills/deliver-dotnet-quality/scripts/bootstrap-repository.ps1 -RepositoryPath 'D:\src\YourProduct'
+./skills/deliver-code-quality/scripts/bootstrap-repository.ps1 -RepositoryPath 'D:\src\YourProduct'
 ```
 
 脚本会检测 `.sln/.csproj`、`package.json`、`pyproject.toml/requirements.txt`，并为每个发现的技术栈生成适配器。也可显式指定：
 
 ```powershell
-./skills/deliver-dotnet-quality/scripts/bootstrap-repository.ps1 `
+./skills/deliver-code-quality/scripts/bootstrap-repository.ps1 `
   -RepositoryPath 'D:\src\YourProduct' `
   -Adapters dotnet,node,python
 ```
@@ -259,7 +259,7 @@ AGENTS、Skills 和本地 Hook 解决的是“让 Agent 知道并尽量正确执
 v1.x 的 `solution` 与 `requireFormatCheck` 配置仍受支持，运行时会标记为 `legacy-dotnet`。升级脚本只替换公共 CLI、核心脚本和适配器，保留配置、工作项、证据、模板和 Hook，并生成可回滚备份：
 
 ```powershell
-./skills/deliver-dotnet-quality/scripts/upgrade-repository.ps1 `
+./skills/deliver-code-quality/scripts/upgrade-repository.ps1 `
   -RepositoryPath 'D:\src\ExistingProduct'
 ```
 

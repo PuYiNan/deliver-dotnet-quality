@@ -79,18 +79,20 @@ Roll back a repository upgrade using the ID printed by the upgrade command:
 npx -y deliver-code-quality@latest upgrade . --rollback 20260801-120000 --json
 ```
 
-## Restore a global Skill backup
+## Skill identifier migration and backup
 
-Every replacement reports a sibling directory named `deliver-dotnet-quality.backup-<timestamp>`. Restore it explicitly:
+The canonical Skill ID and directory are `deliver-code-quality`. Installing version 3 or newer migrates an active legacy `deliver-dotnet-quality` installation automatically, so only the canonical Skill remains discoverable.
+
+Backups are stored outside the active `skills` directory under the Agent configuration root. Every replacement reports its exact path, for example `~/.pi/agent/skill-backups/deliver-code-quality.backup-<timestamp>`. Restore it explicitly:
 
 ```bash
 npx -y deliver-code-quality@latest restore-skill \
   --agent pi \
-  --backup ~/.pi/agent/skills/deliver-dotnet-quality.backup-20260801-120000 \
+  --backup ~/.pi/agent/skill-backups/deliver-code-quality.backup-20260802-230000 \
   --json
 ```
 
-The currently installed Skill is moved aside as `deliver-dotnet-quality.replaced-<timestamp>` instead of being deleted.
+The currently installed Skill is moved into the same inactive `skill-backups` directory as `deliver-code-quality.replaced-<timestamp>` instead of being deleted. Restoring a legacy migration backup intentionally reactivates the legacy ID and moves the canonical installation aside.
 
 ## Install from GitHub before an npm release
 

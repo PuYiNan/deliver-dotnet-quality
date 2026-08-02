@@ -18,8 +18,8 @@ try {
   archive = path.join(root, packed.filename);
   const names = packed.files.map((item) => item.path);
   assert.ok(names.includes('bin/deliver-quality.mjs'));
-  assert.ok(names.includes('skills/deliver-dotnet-quality/SKILL.md'));
-  assert.ok(names.includes('skills/deliver-dotnet-quality/assets/repo-template/.ai-quality/adapters/node.ps1'));
+  assert.ok(names.includes('skills/deliver-code-quality/SKILL.md'));
+  assert.ok(names.includes('skills/deliver-code-quality/assets/repo-template/.ai-quality/adapters/node.ps1'));
   assert.ok(!names.some((name) => name.startsWith('tests/') || name.startsWith('.git/')));
 
   temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'deliver-quality-pack-'));
@@ -48,7 +48,7 @@ try {
   });
   assert.equal(install.status, 0, install.stderr);
   assert.equal(JSON.parse(install.stdout).ok, true);
-  assert.ok((await fs.stat(path.join(destination, 'deliver-dotnet-quality', 'SKILL.md'))).isFile());
+  assert.ok((await fs.stat(path.join(destination, 'deliver-code-quality', 'SKILL.md'))).isFile());
   process.stdout.write(`Packed and installed ${packed.filename} with ${names.length} files.\n`);
 } finally {
   if (archive) await fs.rm(archive, { force: true });
