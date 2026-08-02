@@ -97,6 +97,6 @@ The currently installed Skill is moved aside as `deliver-dotnet-quality.replaced
 After the repository is public, npm can run the package directly from its GitHub source:
 
 ```bash
-npx -y github:PuYiNan/deliver-dotnet-quality doctor --json
-npx -y github:PuYiNan/deliver-dotnet-quality setup --agent pi --repository . --yes --json
+npx -y github:PuYiNan/deliver-code-quality doctor --json
+npx -y github:PuYiNan/deliver-code-quality setup --agent pi --repository . --yes --json
 ```

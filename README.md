@@ -2,7 +2,7 @@
 
 当前版本：`2.1.1` <!-- x-release-please-version -->
 
-[![CI](https://github.com/PuYiNan/deliver-dotnet-quality/actions/workflows/ci.yml/badge.svg)](https://github.com/PuYiNan/deliver-dotnet-quality/actions/workflows/ci.yml)
+[![CI](https://github.com/PuYiNan/deliver-code-quality/actions/workflows/ci.yml/badge.svg)](https://github.com/PuYiNan/deliver-code-quality/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/deliver-code-quality.svg)](https://www.npmjs.com/package/deliver-code-quality)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -53,7 +53,7 @@ npx -y deliver-code-quality@latest setup --agent pi --repository . --yes
 公共 npm 首次发布前，可在仓库公开后直接从 GitHub 运行同一个 CLI：
 
 ```bash
-npx -y github:PuYiNan/deliver-dotnet-quality setup --agent pi --repository . --yes
+npx -y github:PuYiNan/deliver-code-quality setup --agent pi --repository . --yes
 ```
 
 需要长期使用命令时，也可以全局安装：

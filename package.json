@@ -40,11 +40,11 @@
   "author": "PuYiNan",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PuYiNan/deliver-dotnet-quality.git"
+    "url": "git+https://github.com/PuYiNan/deliver-code-quality.git"
   },
-  "homepage": "https://github.com/PuYiNan/deliver-dotnet-quality#readme",
+  "homepage": "https://github.com/PuYiNan/deliver-code-quality#readme",
   "bugs": {
-    "url": "https://github.com/PuYiNan/deliver-dotnet-quality/issues"
+    "url": "https://github.com/PuYiNan/deliver-code-quality/issues"
   },
   "publishConfig": {
     "access": "public",

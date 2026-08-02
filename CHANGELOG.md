@@ -1,18 +1,18 @@
 # Changelog
 
-## [2.1.1](https://github.com/PuYiNan/deliver-dotnet-quality/compare/v2.1.0...v2.1.1) (2026-08-02)
+## [2.1.1](https://github.com/PuYiNan/deliver-code-quality/compare/v2.1.0...v2.1.1) (2026-08-02)
 
 
 ### Bug Fixes
 
-* **release:** publish through npm trusted publisher ([#7](https://github.com/PuYiNan/deliver-dotnet-quality/issues/7)) ([6997832](https://github.com/PuYiNan/deliver-dotnet-quality/commit/6997832859ea03eebd650469497edf8e3ac4b845))
+* **release:** publish through npm trusted publisher ([#7](https://github.com/PuYiNan/deliver-code-quality/issues/7)) ([6997832](https://github.com/PuYiNan/deliver-code-quality/commit/6997832859ea03eebd650469497edf8e3ac4b845))
 
-## [2.1.0](https://github.com/PuYiNan/deliver-dotnet-quality/compare/v2.0.0...v2.1.0) (2026-08-01)
+## [2.1.0](https://github.com/PuYiNan/deliver-code-quality/compare/v2.0.0...v2.1.0) (2026-08-01)
 
 
 ### Features
 
-* add one-command installer and automated releases ([33cdc9d](https://github.com/PuYiNan/deliver-dotnet-quality/commit/33cdc9d10c033b064a7c10cc38b602fd39ebc152))
+* add one-command installer and automated releases ([33cdc9d](https://github.com/PuYiNan/deliver-code-quality/commit/33cdc9d10c033b064a7c10cc38b602fd39ebc152))
 
 ## 2.0.0 - 2026-08-01
 
