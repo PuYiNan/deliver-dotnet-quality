@@ -36,13 +36,16 @@ Recommended bootstrap:
    - Repository: `deliver-dotnet-quality`
    - Workflow filename: `release.yml`
    - Allowed action: `npm publish`
-5. Remove the bootstrap token:
+5. Remove `NODE_AUTH_TOKEN` from the publish step so npm uses the GitHub OIDC identity. Keep the secret stored temporarily as a rollback credential, but do not inject it into `npm publish`.
+6. Publish the next real release and verify the npm version, GitHub Actions run, and provenance before tightening access.
+7. In npm package settings, select **Require two-factor authentication and disallow tokens**.
+8. Remove the bootstrap token from GitHub and revoke it on npm:
 
    ```bash
    gh secret delete NPM_TOKEN --repo PuYiNan/deliver-dotnet-quality
    ```
 
-The workflow keeps `id-token: write`, uses a current npm 11 client, and publishes from a GitHub-hosted runner. npm then authenticates with short-lived OIDC credentials and generates provenance for the public package from the public repository.
+The workflow keeps `id-token: write`, uses a current npm 11 client, publishes without `NODE_AUTH_TOKEN`, and runs on a GitHub-hosted runner. npm then authenticates with short-lived OIDC credentials and generates provenance for the public package from the public repository. Do not delete the rollback secret until one OIDC release has succeeded.
 
 References: [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/) and [Release Please Action](https://github.com/googleapis/release-please-action).
 
