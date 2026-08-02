@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/PuYiNan/deliver-code-quality/compare/v2.1.1...v3.0.0) (2026-08-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* Agent Skill invocations and directories now use deliver-code-quality. The installer migrates legacy global and repository-level Skill installations with rollback backups.
+
+### Features
+
+* rename Skill identifier to deliver-code-quality ([#12](https://github.com/PuYiNan/deliver-code-quality/issues/12)) ([b30f6bd](https://github.com/PuYiNan/deliver-code-quality/commit/b30f6bdfc4911c5082a749ac5567b32e8f640d57))
+
 ## [2.1.1](https://github.com/PuYiNan/deliver-code-quality/compare/v2.1.0...v2.1.1) (2026-08-02)
 
 
