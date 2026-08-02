@@ -21,7 +21,7 @@
     "test": "node --test tests/npm-cli.test.mjs",
     "test:package": "node tests/pack-smoke.mjs",
     "validate": "node tests/validate-package.mjs",
-    "publish:check": "npm publish --dry-run --ignore-scripts",
+    "publish:check": "npm pack --dry-run --ignore-scripts",
     "ci": "npm run test && npm run validate && npm run test:package && npm run publish:check"
   },
   "engines": {
