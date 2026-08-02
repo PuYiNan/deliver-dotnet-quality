@@ -27,7 +27,7 @@ Recommended bootstrap:
 2. Store it without printing it:
 
    ```bash
-   gh secret set NPM_TOKEN --repo PuYiNan/deliver-dotnet-quality
+   gh secret set NPM_TOKEN --repo PuYiNan/deliver-code-quality
    ```
 
 3. Merge the first Release PR. `release.yml` publishes the package.
@@ -42,7 +42,7 @@ Recommended bootstrap:
 8. Remove the bootstrap token from GitHub and revoke it on npm:
 
    ```bash
-   gh secret delete NPM_TOKEN --repo PuYiNan/deliver-dotnet-quality
+   gh secret delete NPM_TOKEN --repo PuYiNan/deliver-code-quality
    ```
 
 The workflow keeps `id-token: write`, uses a current npm 11 client, publishes without `NODE_AUTH_TOKEN`, and runs on a GitHub-hosted runner. npm then authenticates with short-lived OIDC credentials and generates provenance for the public package from the public repository. Do not delete the rollback secret until one OIDC release has succeeded.

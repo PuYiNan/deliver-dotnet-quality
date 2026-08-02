@@ -14,7 +14,7 @@ assert.equal(packageJson.license, 'MIT');
 assert.equal(packageJson.private, undefined);
 assert.equal(packageJson.publishConfig.access, 'public');
 assert.equal(packageJson.publishConfig.registry, 'https://registry.npmjs.org/');
-assert.equal(packageJson.repository.url, 'git+https://github.com/PuYiNan/deliver-dotnet-quality.git');
+assert.equal(packageJson.repository.url, 'git+https://github.com/PuYiNan/deliver-code-quality.git');
 assert.ok(fs.existsSync(path.join(root, 'LICENSE')));
 
 const skillRoot = path.join(root, 'skills', 'deliver-dotnet-quality');
