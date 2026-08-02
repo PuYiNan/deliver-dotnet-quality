@@ -33,7 +33,7 @@ Recommended bootstrap:
 3. Merge the first Release PR. `release.yml` publishes the package.
 4. Configure npm Trusted Publisher for:
    - GitHub owner: `PuYiNan`
-   - Repository: `deliver-dotnet-quality`
+   - Repository: `deliver-code-quality`
    - Workflow filename: `release.yml`
    - Allowed action: `npm publish`
 5. Remove `NODE_AUTH_TOKEN` from the publish step so npm uses the GitHub OIDC identity. Keep the secret stored temporarily as a rollback credential, but do not inject it into `npm publish`.

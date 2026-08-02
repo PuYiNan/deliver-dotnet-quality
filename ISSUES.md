@@ -4,7 +4,7 @@
 
 - Status: Fixed in 1.0.1
 - Reported: 2026-08-01
-- Incident note: `03-工作项目/deliver-dotnet-quality技能包/故障-2026-08-01-Test-AiDelivery退出码误判.md`
+- Incident note: `03-工作项目/deliver-code-quality技能包/故障-2026-08-01-Test-AiDelivery退出码误判.md`
 
 ### Symptom
 

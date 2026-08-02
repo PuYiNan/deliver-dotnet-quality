@@ -2,7 +2,7 @@
 param()
 
 $ErrorActionPreference = 'Stop'
-$skillRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\skills\deliver-dotnet-quality')).Path
+$skillRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\skills\deliver-code-quality')).Path
 $bootstrap = Join-Path $skillRoot 'scripts\bootstrap-repository.ps1'
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) "deliver-code-quality-$([guid]::NewGuid().ToString('N'))"
 

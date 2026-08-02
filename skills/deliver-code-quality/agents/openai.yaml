@@ -1,0 +1,4 @@
+interface:
+  display_name: "Closed-Loop Code Delivery"
+  short_description: "Install and enforce cross-stack delivery quality"
+  default_prompt: "Use $deliver-code-quality to install or upgrade repository controls and deliver this software task through approved requirements, multi-stack gates, and evidence-based acceptance."

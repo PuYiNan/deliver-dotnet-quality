@@ -1,5 +1,5 @@
 ---
-name: deliver-dotnet-quality
+name: deliver-code-quality
 description: Install, upgrade, and enforce an evidence-based, closed-loop software delivery workflow across .NET, Node.js/TypeScript, Python, custom toolchains, and polyglot repositories. Use for repository onboarding, feature work, bug fixes, refactoring, APIs, web UI, desktop UI, libraries, and services when an agent must understand requirements before editing, follow manual or explicitly trusted approvals, run every configured language adapter and UI gate, and deliver verifiable evidence instead of an unsupported completion claim.
 ---
 

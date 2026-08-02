@@ -1,5 +1,5 @@
 ---
-name: deliver-dotnet-quality
+name: deliver-code-quality
 description: Deliver software changes across .NET, Node, Python, custom stacks, and polyglot repositories through an approved specification, plan, test contract, executable multi-adapter Full gate, UI evidence when applicable, and recorded acceptance.
 ---
 

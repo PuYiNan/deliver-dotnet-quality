@@ -44,6 +44,7 @@ if ($Rollback) {
 }
 
 $relativeFiles = [System.Collections.Generic.List[string]]::new()
+$legacyAgentSkillFiles = [System.Collections.Generic.List[string]]::new()
 $relativeFiles.Add('aq.ps1')
 Get-ChildItem -LiteralPath (Join-Path $sourceRoot '.ai-quality\scripts') -File | ForEach-Object {
     $relativeFiles.Add([IO.Path]::GetRelativePath($sourceRoot, $_.FullName))
@@ -52,8 +53,11 @@ Get-ChildItem -LiteralPath (Join-Path $sourceRoot '.ai-quality\adapters') -File 
     $relativeFiles.Add([IO.Path]::GetRelativePath($sourceRoot, $_.FullName))
 }
 if ($IncludeAgentInstructions) {
-    foreach ($relative in @('AGENTS.md', 'CLAUDE.md', '.ai-quality\agent-policy.md', '.agents\skills\deliver-dotnet-quality\SKILL.md', '.claude\skills\deliver-dotnet-quality\SKILL.md', '.cursor\rules\ai-quality.mdc', '.github\copilot-instructions.md')) {
+    foreach ($relative in @('AGENTS.md', 'CLAUDE.md', '.ai-quality\agent-policy.md', '.agents\skills\deliver-code-quality\SKILL.md', '.claude\skills\deliver-code-quality\SKILL.md', '.cursor\rules\ai-quality.mdc', '.github\copilot-instructions.md')) {
         $relativeFiles.Add($relative)
+    }
+    foreach ($relative in @('.agents\skills\deliver-dotnet-quality\SKILL.md', '.claude\skills\deliver-dotnet-quality\SKILL.md')) {
+        $legacyAgentSkillFiles.Add($relative)
     }
 }
 
@@ -81,6 +85,17 @@ foreach ($relative in $relativeFiles) {
     if (-not (Test-Path -LiteralPath $destinationParent)) { New-Item -ItemType Directory -Path $destinationParent -Force | Out-Null }
     Copy-Item -LiteralPath $source -Destination $destination -Force
     $manifestEntries.Add([pscustomobject]@{ relativePath = $relative.Replace('\', '/'); existed = $existed })
+}
+
+foreach ($relative in $legacyAgentSkillFiles) {
+    $destination = Assert-RepositoryPath (Join-Path $repoRoot $relative)
+    if (-not (Test-Path -LiteralPath $destination)) { continue }
+    $backup = Assert-RepositoryPath (Join-Path $backupRoot $relative)
+    $backupParent = Split-Path -Parent $backup
+    if (-not (Test-Path -LiteralPath $backupParent)) { New-Item -ItemType Directory -Path $backupParent -Force | Out-Null }
+    Copy-Item -LiteralPath $destination -Destination $backup -Force
+    Remove-Item -LiteralPath $destination -Force
+    $manifestEntries.Add([pscustomobject]@{ relativePath = $relative.Replace('\', '/'); existed = $true })
 }
 
 [ordered]@{
