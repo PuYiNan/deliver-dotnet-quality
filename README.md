@@ -1,6 +1,6 @@
 # AI Agent 高质量闭环工程套件（语言无关内核）
 
-当前版本：`2.1.1` <!-- x-release-please-version -->
+当前版本：`3.0.0` <!-- x-release-please-version -->
 
 [![CI](https://github.com/PuYiNan/deliver-code-quality/actions/workflows/ci.yml/badge.svg)](https://github.com/PuYiNan/deliver-code-quality/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/deliver-code-quality.svg)](https://www.npmjs.com/package/deliver-code-quality)
